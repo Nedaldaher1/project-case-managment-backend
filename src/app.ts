@@ -1,4 +1,3 @@
-// src/app.ts
 import { Hono } from 'hono';
 import caseRouter from './routes/case.route.js';
 import userRouter from './routes/user.route.js';
@@ -10,6 +9,13 @@ dotenv.config();
 
 const app = new Hono();
 
+// تعديل إعدادات CORS للسماح لجميع المصادر
+app.use('*', cors({
+  origin: (origin) => { return origin }, // الأصل المسموح به
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true, // إذا كنت تحتاج إلى إرسال ملفات تعريف الارتباط
+}))
+
 // تهيئة قاعدة البيانات
 sequelize.sync().then(() => {
   console.log('Database synced');
@@ -20,12 +26,6 @@ app.use((c: Context, next: Next) => {
   console.log(`Request received: ${c.req.method} ${c.req.url}`);
   return next();
 });
-app.use('*', cors({
-  origin: 'http://localhost:3001',  // السماح فقط بطلبات من localhost:3001
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],  // تحديد الطرق المسموح بها
-  allowHeaders: ['Content-Type', 'Authorization'],  // السماح بالرؤوس
-  credentials: true  // إذا كنت تستخدم ملفات تعريف الارتباط أو الطلبات المعقدة
-}));
 
 // استخدام المسارات
 app.route('/api', caseRouter);

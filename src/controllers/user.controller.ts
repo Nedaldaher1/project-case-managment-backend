@@ -71,10 +71,10 @@ export const userLogin = async (c: Context) => {
 
         // التحقق من اسم المستخدم وكلمة المرور
         if (!username) {
-            return c.json({ message: 'Username is required' }, 400);
+            return c.json({ message: 'اسم المستخدم ملطوب' }, 400);
         }
         if (!password) {
-            return c.json({ message: 'Password is required' }, 400);
+            return c.json({ message: 'كلمة السر مطلوبة' }, 400);
         }
 
         // البحث عن المستخدم
