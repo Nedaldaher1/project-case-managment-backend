@@ -3,6 +3,7 @@ import caseRouter from './routes/case.route.js';
 import userRouter from './routes/user.route.js';
 import type { Context, Next } from 'hono';
 import sequelize from './config/db.js';
+import {syncModels} from './config/db.js';
 import dotenv from 'dotenv';
 import { cors } from 'hono/cors'
 dotenv.config();
@@ -17,8 +18,8 @@ app.use('*', cors({
 }))
 
 // تهيئة قاعدة البيانات
-sequelize.sync().then(() => {
-  console.log('Database synced');
+sequelize.sync().then( async() => {
+  await syncModels();
 });
 
 // اريد طباعة كل مايحدث من احداث في السيرفر

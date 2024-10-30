@@ -7,6 +7,9 @@ export const createCase = async (data: {
   defendantName: string;
   imprisonmentDuration: number;
   startDate: Date;
+  member_location: string;
+  member_number: string;
+  type_case: string;
 }) => {
   return await Case.create(data);
 };
@@ -21,7 +24,7 @@ export const getAllCases = async () => {
     }
 };
 
-export const updateCase = async (data: { id: number; caseNumber?: string; defendantName?: string; imprisonmentDuration?: number; startDate?: Date }) => {
+export const updateCase = async (data: { id: number; caseNumber?: string; defendantName?: string; imprisonmentDuration?: number; startDate?: Date; member_location?:string,member_number?:string; type_case?:string; }) => {
     try {
         const updatedCase = await Case.update(data, { where: { id: data.id } });
         return updatedCase;
