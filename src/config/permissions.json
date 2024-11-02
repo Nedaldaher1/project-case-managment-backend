@@ -1,0 +1,24 @@
+{
+    "roles": [
+        "owner",
+        "admin",
+        "editor"
+    ],
+    "permissions": {
+        "onwer": [
+            "readAll",
+            "write",
+            "edit"
+        ],
+        "admin": [
+            "readAll",
+            "write",
+            "edit"
+        ],
+        "editor": [
+            "read",
+            "write",
+            "edit"
+        ]
+    }
+}

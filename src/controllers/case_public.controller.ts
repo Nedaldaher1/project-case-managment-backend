@@ -1,6 +1,6 @@
 // src/controllers/case.controller.ts
 import type { Context } from 'hono';
-import { createCase, getAllCases,updateCase } from '../services/case.service.js';
+import { createCase, getAllCases,updateCase } from '../services/case_public.service.js';
 
 export const createCaseHandler = async (c: Context) => {
     const { caseNumber, defendantName, imprisonmentDuration, startDate,member_location,member_number,type_case } = await c.req.json();

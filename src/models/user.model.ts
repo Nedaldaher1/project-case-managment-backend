@@ -1,4 +1,3 @@
-// src/models/case.model.ts
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
@@ -16,7 +15,13 @@ const User = sequelize.define('users', {
   password: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  role: {
+    type: DataTypes.STRING,
+    defaultValue: "editor"
   }
+}, {
+  tableName: 'users', // تأكد من تطابق اسم الجدول
 });
 
 export default User;

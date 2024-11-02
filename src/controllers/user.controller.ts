@@ -1,12 +1,14 @@
 import { userCreate } from "../services/user.services.js";
-import { sign } from 'hono/jwt';
 import bcrypt from 'bcrypt';
 import type { Context } from "hono";
 import User from "../models/user.model.js";
+import { createToken,verifyToken
+    
+ } from "../utils/utils_login.js";
 
 export const createUser = async (c: Context) => {
     try {
-        const { username, password } = await c.req.json();
+        const { username, password, role } = await c.req.json();
 
         // التحقق من اسم المستخدم وكلمة المرور
         if (!username) {
@@ -32,29 +34,20 @@ export const createUser = async (c: Context) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // إنشاء المستخدم
-        const user = await userCreate({ username, password: hashedPassword });
+        const user = await userCreate({ username, password: hashedPassword, role });
+        const userRoleFromDb = user.get('role') as string;
 
         // التحقق من وجود المعرّف
-        const userId = user.get('id');
+        const userId = user.get('id') as string;
         if (!userId) {
             throw new Error('User ID not found');
         }
-
-        // إنشاء التوكن مع ضبط وقت انتهاء الصلاحية (اختياري)
-        const payload = {
-            id: userId,
-            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
-        };
-
         // انتظار التوكن باستخدام await
-        const token = await sign(payload, privateKey);
-
-        console.log(token); // الآن يمكنك طباعة التوكن الفعلي
-
+        const token = await createToken(userId, role);
         // إرجاع التوكن والمستخدم
         return c.json({ 
             token, 
-            user: { id: userId, username }, 
+            user: { id: userId, username, role: userRoleFromDb }, 
             message: 'User created successfully' 
         }, 201);
 
@@ -63,6 +56,7 @@ export const createUser = async (c: Context) => {
         console.error(error);
         return c.json({ message: 'An error occurred', error: (error as Error).message }, 500);
     }
+
 }
 
 export const userLogin = async (c: Context) => {
@@ -90,7 +84,8 @@ export const userLogin = async (c: Context) => {
         }
 
         // التحقق من وجود المعرّف
-        const userId = user.get('id');
+        const userId = user.get('id') as string;
+        const role = user.get('role') as string;
         if (!userId) {
             throw new Error('User ID not found');
         }
@@ -101,16 +96,10 @@ export const userLogin = async (c: Context) => {
             throw new Error('Private_Key is not defined in environment variables');
         }
 
-        // إنشاء التوكن مع ضبط وقت انتهاء الصلاحية (اختياري)
-        const payload = {
-            id: userId,
-            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
-        };
+
 
         // انتظار التوكن باستخدام await
-        const token = await sign(payload, privateKey);
-
-        console.log(token); // الآن يمكنك طباعة التوكن الفعلي
+        const token = await createToken(userId, role);
 
         // إرجاع التوكن والمستخدم
         return c.json({ 
@@ -126,3 +115,27 @@ export const userLogin = async (c: Context) => {
 }
 
 }
+
+export const userAuthuntication = async (c: Context) => {
+    try {
+        let token = c.req.header('Authorization');
+        if (!token) {
+            return c.json({ message: 'Token is required' }, 400);
+        }
+
+        // إزالة "Bearer " من بداية التوكن
+        token = token.replace(/^Bearer\s+/i, '');
+
+        const decodedToken = await verifyToken(token);
+        if (!decodedToken) {
+            return c.json({ message: 'Invalid token' }, 400);
+        }
+
+        return c.json({ message: 'Authorized' ,decodedToken  }, 200);
+
+    } catch (error) {
+        console.error(error);
+        return c.json({ message: 'An error occurred', error: (error as Error).message }, 500);
+    }
+};
+

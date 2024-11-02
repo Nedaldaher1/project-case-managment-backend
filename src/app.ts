@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import caseRouter from './routes/case.route.js';
+import  caseRouter from './routes/case_public.route..js';
 import userRouter from './routes/user.route.js';
+import caseRouterPrivate from './routes/case_private.route.js';
 import type { Context, Next } from 'hono';
 import sequelize from './config/db.js';
 import {syncModels} from './config/db.js';
@@ -29,7 +30,8 @@ app.use((c: Context, next: Next) => {
 });
 
 // استخدام المسارات
-app.route('/api', caseRouter);
+app.route('/api/public', caseRouter);
+app.route('/api/private', caseRouterPrivate);
 app.route('/auth', userRouter);
 
 export default app;
