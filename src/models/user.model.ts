@@ -6,6 +6,12 @@ const User = sequelize.define('users', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
+    unique: true,
+  }, 
+  member_id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    unique: true,
   },
   username: {
     type: DataTypes.STRING,

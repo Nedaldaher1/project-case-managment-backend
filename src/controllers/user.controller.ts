@@ -2,9 +2,7 @@ import { userCreate } from "../services/user.services.js";
 import bcrypt from 'bcrypt';
 import type { Context } from "hono";
 import User from "../models/user.model.js";
-import { createToken,verifyToken
-    
- } from "../utils/utils_login.js";
+import { createToken, verifyToken } from "../utils/utils_login.js";
 
 export const createUser = async (c: Context) => {
     try {
@@ -36,6 +34,7 @@ export const createUser = async (c: Context) => {
         // إنشاء المستخدم
         const user = await userCreate({ username, password: hashedPassword, role });
         const userRoleFromDb = user.get('role') as string;
+        const memberNumber = user.get('member_id') as number;
 
         // التحقق من وجود المعرّف
         const userId = user.get('id') as string;
@@ -45,10 +44,10 @@ export const createUser = async (c: Context) => {
         // انتظار التوكن باستخدام await
         const token = await createToken(userId, role);
         // إرجاع التوكن والمستخدم
-        return c.json({ 
-            token, 
-            user: { id: userId, username, role: userRoleFromDb }, 
-            message: 'User created successfully' 
+        return c.json({
+            token,
+            user: { id: userId, username, role: userRoleFromDb , memberNumber },
+            message: 'User created successfully'
         }, 201);
 
     } catch (error) {
@@ -86,6 +85,8 @@ export const userLogin = async (c: Context) => {
         // التحقق من وجود المعرّف
         const userId = user.get('id') as string;
         const role = user.get('role') as string;
+        const memberNumber = user.get('member_id') as number;
+
         if (!userId) {
             throw new Error('User ID not found');
         }
@@ -102,17 +103,17 @@ export const userLogin = async (c: Context) => {
         const token = await createToken(userId, role);
 
         // إرجاع التوكن والمستخدم
-        return c.json({ 
-            token, 
-            user: { id: userId, username }, 
-            message: 'User logged in successfully' 
+        return c.json({
+            token,
+            user: { id: userId, username, role,memberNumber },
+            message: 'User logged in successfully'
         }, 200);
 
     } catch (error) {
         // التعامل مع الأخطاء
         console.error(error);
         return c.json({ message: 'An error occurred', error: (error as Error).message }, 500);
-}
+    }
 
 }
 
@@ -120,18 +121,23 @@ export const userAuthuntication = async (c: Context) => {
     try {
         let token = c.req.header('Authorization');
         if (!token) {
-            return c.json({ message: 'Token is required' }, 400);
+            const message = 'Token is required';
+            console.log(message);
+            return c.json({ message }, 401);
         }
 
         // إزالة "Bearer " من بداية التوكن
         token = token.replace(/^Bearer\s+/i, '');
 
-        const decodedToken = await verifyToken(token);
-        if (!decodedToken) {
-            return c.json({ message: 'Invalid token' }, 400);
+        const { tokenStatus, payload } = await verifyToken(token);
+
+        if (!tokenStatus) {
+            return c.json({}, 401);
         }
 
-        return c.json({ message: 'Authorized' ,decodedToken  }, 200);
+
+
+        return c.json({ payload, tokenStatus }, 200);
 
     } catch (error) {
         console.error(error);

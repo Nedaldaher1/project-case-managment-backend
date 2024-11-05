@@ -26,9 +26,14 @@ export const verifyToken = async (token: string) => {
     if (!privateKey) {
         throw new Error('Private_Key is not defined in environment variables');
     }
+
+    try {
         // التحقق من صحة التوكن وفكه
         const payload = await verify(token, privateKey, 'HS256');
-        // إرجاع المحتوى المفكوك للتوكن
-        return payload;
-    
+        // إرجاع المحتوى المفكوك للتوكن مع حالة التوكن
+        return { payload, tokenStatus: true };
+    } catch (error) {
+        // في حالة فشل التحقق من صحة التوكن
+        return { payload: null, tokenStatus: false };
+    }
 };
