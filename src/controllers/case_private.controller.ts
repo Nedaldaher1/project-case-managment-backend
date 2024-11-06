@@ -4,7 +4,7 @@ import type { Context } from 'hono';
 
 export const createCaseHandler = async (c: Context) => {
     try {
-        const { caseNumber, memberNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision, userId } = await c.req.json();
+        const { caseNumber, memberNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision,actionOther, userId } = await c.req.json();
 
         if (!caseNumber || !memberNumber || !accusation) {
             return c.json({ success: false, error: "caseNumber, memberNumber, and accusation are required." });
@@ -21,6 +21,7 @@ export const createCaseHandler = async (c: Context) => {
             technicalReports,
             caseReferral,
             isReadyForDecision,
+            actionOther,
             userId
         });
         return c.json({ success: true, case: newCase });
@@ -31,7 +32,7 @@ export const createCaseHandler = async (c: Context) => {
 
 export const editCase = async (c: Context) => {
     try {
-        const { id, caseNumber, memberNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision } = await c.req.json();
+        const { id, caseNumber, memberNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision ,actionOther } = await c.req.json();
         const updatedCase = await updateCase(id, {
             caseNumber,
             memberNumber,
@@ -42,7 +43,8 @@ export const editCase = async (c: Context) => {
             witnessQuestion,
             technicalReports,
             caseReferral,
-            isReadyForDecision
+            isReadyForDecision,
+            actionOther
         });
         return c.json({ success: true, case: updatedCase });
     } catch (error) {

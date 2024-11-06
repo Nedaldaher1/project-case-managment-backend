@@ -62,6 +62,11 @@ const Case_private = sequelize.define('Case_private', {
     },
     comment: 'معرف المستخدم الذي أنشأ القضية',
   },
+  actionOther:{
+    type: DataTypes.TEXT,
+    allowNull: false,
+    comment: 'أخرى',
+  }
 }, {
   timestamps: true,
   tableName: 'case_private',

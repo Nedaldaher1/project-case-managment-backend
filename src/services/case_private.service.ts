@@ -12,6 +12,7 @@ export const createCase = async (data: {
   technicalReports: string;
   caseReferral: string;
   isReadyForDecision: string;
+  actionOther: string;
   userId: UUID;
 }) => {
   return await Case_private.create(data);
@@ -42,6 +43,7 @@ export const updateCase = async (id: string, data: {
   technicalReports: string;
   caseReferral: string;
   isReadyForDecision: string;
+  actionOther: string;
   
 }) => {
   return await Case_private.update(data, {
