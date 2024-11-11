@@ -1,7 +1,7 @@
-import { serve } from '@hono/node-server'; // Import the Hono serve function
-import app from './app.js';
+import app from './app.ts';
 
+const port = 3000;
 
-serve(app, (info) => {
-  console.log(`Server is running on ${info.address}`);
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });

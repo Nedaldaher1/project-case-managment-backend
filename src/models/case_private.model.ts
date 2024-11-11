@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js';
-import User from './user.model.js';
+import  {sequelize, Op } from '../config/db';
+import User from './user.model';
 
 const Case_private = sequelize.define('Case_private', {
   id: {

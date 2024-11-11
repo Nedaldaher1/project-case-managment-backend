@@ -1,13 +1,13 @@
 // src/routes/case.route.ts
-import { Hono } from 'hono';
-import { createCaseHandler,fetchAllCases,fetchCases,editCase } from '../controllers/case_private.controller.js';
+import express from 'express';
+import { createCaseHandler,fetchAllCases,fetchCases,editCase } from '../controllers/case_private.controller';
 
-const caseRouterPrivate = new Hono();
+const router = express.Router();
 
-caseRouterPrivate.post('/cases/add', createCaseHandler);
-caseRouterPrivate.get('/cases/:id', fetchCases);
-caseRouterPrivate.get('/cases', fetchAllCases);
-caseRouterPrivate.put('/cases/edit', editCase);
+router.post('/cases/add', createCaseHandler);
+router.get('/cases/:id', fetchCases);
+router.get('/cases', fetchAllCases);
+router.put('/cases/edit', editCase);
 
 
-export default caseRouterPrivate;
+export default router;

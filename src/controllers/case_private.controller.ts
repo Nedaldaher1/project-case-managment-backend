@@ -1,15 +1,29 @@
-import {Case_private} from '../models/index.js';
-import {getCases,getAllCases,createCase,updateCase} from '../services/case_private.service.js';
-import type { Context } from 'hono';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { getCases, getAllCases, createCase, updateCase } from '../services/case_private.service';
 
-export const createCaseHandler = async (c: Context) => {
+export const createCaseHandler: RequestHandler = async (req: Request, res: Response) => {
     try {
-        const { caseNumber, memberNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision,actionOther, userId } = await c.req.json();
+        const {
+            caseNumber,
+            memberNumber,
+            accusation,
+            defendantQuestion,
+            officerQuestion,
+            victimQuestion,
+            witnessQuestion,
+            technicalReports,
+            caseReferral,
+            isReadyForDecision,
+            actionOther,
+            userId
+        } = req.body;
 
+        // Validate required fields
         if (!caseNumber || !memberNumber || !accusation) {
-            return c.json({ success: false, error: "caseNumber, memberNumber, and accusation are required." });
+             res.status(400).json({ success: false, error: "caseNumber, memberNumber, and accusation are required." });
         }
 
+        // Call service to create a new case
         const newCase = await createCase({
             caseNumber,
             memberNumber,
@@ -24,15 +38,20 @@ export const createCaseHandler = async (c: Context) => {
             actionOther,
             userId
         });
-        return c.json({ success: true, case: newCase });
+
+        // Respond with success and the created case
+        res.status(201).json({ success: true, case: newCase });
+
     } catch (error) {
-        return c.json({ success: false, error: (error as Error).message });
+        res.status(500).json({ success: false, error: (error as Error).message });
+        // Catch and respond with error details
     }
 };
 
-export const editCase = async (c: Context) => {
+export const editCase  : RequestHandler = async (req: Request, res: Response) => {
     try {
-        const { id, caseNumber, memberNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision ,actionOther } = await c.req.json();
+        const { id, caseNumber, memberNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision, actionOther } = req.body;
+
         const updatedCase = await updateCase(id, {
             caseNumber,
             memberNumber,
@@ -46,27 +65,27 @@ export const editCase = async (c: Context) => {
             isReadyForDecision,
             actionOther
         });
-        return c.json({ success: true, case: updatedCase });
+         res.json({ success: true, case: updatedCase });
     } catch (error) {
-        return c.json({ success: false, error: (error as Error).message });
+         res.json({ success: false, error: (error as Error).message });
     }
 };
 
-export const fetchAllCases = async (c: Context) => {
+export const fetchAllCases  : RequestHandler = async (req: Request, res: Response) =>  {
     try {
         const cases = await getAllCases();
-        return c.json({ success: true, cases });
+         res.json({ success: true, cases });
     } catch (error) {
-        return c.json({ success: false, error: (error as Error).message });
+         res.json({ success: false, error: (error as Error).message });
     }
 };
 
-export const fetchCases = async (c: Context) => {
+export const fetchCases : RequestHandler = async (req: Request, res: Response) => {
     try {
-        const { id } = c.req.param();
+        const { id } = req.params;
         const cases = await getCases(id);
-        return c.json({ success: true, cases });
+         res.json({ success: true, cases });
     } catch (error) {
-        return c.json({ success: false, error: (error as Error).message });
+         res.json({ success: false, error: (error as Error).message });
     }
 };

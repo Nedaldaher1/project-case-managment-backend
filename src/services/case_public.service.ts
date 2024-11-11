@@ -1,6 +1,6 @@
 // src/services/case.service.ts
 import exp from 'constants';
-import Case from '../models/case_public.model.js';
+import Case from '../models/case_public.model';
 
 export const createCase = async (data: {
   caseNumber: string;

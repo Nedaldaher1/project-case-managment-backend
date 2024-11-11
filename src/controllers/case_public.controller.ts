@@ -1,9 +1,9 @@
 // src/controllers/case.controller.ts
-import type { Context } from 'hono';
-import { createCase, getAllCases,updateCase } from '../services/case_public.service.js';
+import { createCase, getAllCases,updateCase } from '../services/case_public.service';
+import { Request, Response, RequestHandler } from 'express';
 
-export const createCaseHandler = async (c: Context) => {
-    const { caseNumber, defendantName, imprisonmentDuration, startDate,member_location,member_number,type_case } = await c.req.json();
+export const createCaseHandler: RequestHandler = async (req: Request, res: Response) => {
+    const { caseNumber, defendantName, imprisonmentDuration, startDate,member_location,member_number,type_case } =  req.body;
     const newCase = await createCase({
         caseNumber,
         defendantName,
@@ -14,12 +14,12 @@ export const createCaseHandler = async (c: Context) => {
         type_case
         
     });
-    return c.json({ success: true, case: newCase });
+     res.json({ success: true, case: newCase });
 };
 
-export const editCase = async (c: Context) => {
+export const editCase : RequestHandler = async (req: Request, res: Response) => {
     try {
-        const { id, caseNumber, defendantName, imprisonmentDuration, startDate,member_location,member_number,type_case } = await c.req.json();
+        const { id, caseNumber, defendantName, imprisonmentDuration, startDate,member_location,member_number,type_case } = req.body;
         
         const updatedCase = await updateCase({
             id,
@@ -32,21 +32,21 @@ export const editCase = async (c: Context) => {
             type_case
         
         });
-        return c.json({ success: true, case: updatedCase });
+         res.json({ success: true, case: updatedCase });
 
     } catch (error) {
         console.log(error)
-        return c.json({ success: false, error: (error as Error).message });
+         res.json({ success: false, error: (error as Error).message });
         
     }
 }
 
-export const fetchAllCases = async (c: Context) => {
+export const fetchAllCases : RequestHandler = async (req: Request, res: Response) => {
 
     try {
      const cases = await getAllCases()   
-        return c.json({ success: true, cases });
+         res.json({ success: true, cases });
     } catch (error) {
-        return c.json({ success: false, error: (error as Error).message });
+         res.json({ success: false, error: (error as Error).message });
     }
 }

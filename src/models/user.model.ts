@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js';
+import  {sequelize, Op } from '../config/db';
 
 const User = sequelize.define('users', {
   id: {
@@ -28,6 +28,9 @@ const User = sequelize.define('users', {
   }
 }, {
   tableName: 'users', // تأكد من تطابق اسم الجدول
+  timestamps: false,
 });
+
+
 
 export default User;

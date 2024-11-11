@@ -1,5 +1,5 @@
 import type { UUID } from 'crypto';
-import {Case_private} from '../models/index.js'
+import {Case_private} from '../models/index'
 
 export const createCase = async (data: {
   caseNumber: string;

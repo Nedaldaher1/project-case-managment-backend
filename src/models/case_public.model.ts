@@ -1,6 +1,6 @@
 // src/models/case.model.ts
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js';
+import  {sequelize, Op } from '../config/db';
 
 const Case_public = sequelize.define('Case_public', {
   id: {
