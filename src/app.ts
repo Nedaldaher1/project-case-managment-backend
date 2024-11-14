@@ -19,21 +19,20 @@ app.use(express.urlencoded({ extended: true }));
 // إعداد الجلسات باستخدام connect-pg-simple
 app.use(
   session({
-      store: new (PgSession(session))({
-          conString: process.env.DATABASE_URL,
-          createTableIfMissing: true,
-      }),
-      secret: process.env.SESSION_SECRET || 'default_secret',
-      resave: false,
-      saveUninitialized: false,
-      proxy: true,
-      cookie: {
-        maxAge: 1000 * 60 * 60 * 8, // مدة انتهاء الجلسة 8 ساعات
-        secure: process.env.NODE_ENV === 'production', // يجب أن يكون true في الإنتاج فقط
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // يمكن استخدام 'lax' أو 'none' في التطوير
-    }
-    
+    store: new (PgSession(session))({
+        conString: process.env.DATABASE_URL,
+        createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || 'default_secret', // استخدم secret قويًا في الإنتاج
+    resave: false,
+    saveUninitialized: false,
+    proxy: process.env.NODE_ENV === 'production', // استخدام proxy في وضع الإنتاج فقط
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 8, // مدة انتهاء الجلسة: 8 ساعات
+      secure: process.env.NODE_ENV === 'production', // تفعيل secure عند الإنتاج فقط
+      httpOnly: true, // لا يمكن الوصول إلى الكوكي عبر الجافا سكربت من العميل
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // تعيين sameSite إلى 'strict' في الإنتاج
+    },
   })
 );
 
