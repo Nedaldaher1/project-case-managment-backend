@@ -103,6 +103,9 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
         const userSecret2FA = user.get('secret2FA') as { base32: string };
 
         const otpauth = userSecret2FA.base32;
+        
+        console.log('otpauth:', otpauth);
+
         if (!userSecret2FA) {
             console.log('2FA secret not found');
             res.status(404).json({ message: '2FA secret not found' });
