@@ -113,7 +113,7 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
             secret: otpauth,
             encoding: 'base32',
             token,
-            window: 2,
+            window: 4,
         });
         if (!verified) {
             console.log('Invalid token');
