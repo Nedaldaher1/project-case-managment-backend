@@ -103,7 +103,7 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
         const userSecret2FA = user.get('secret2FA') as { base32: string };
 
         const otpauth = userSecret2FA.base32;
-        
+
         console.log('otpauth:', otpauth);
 
         if (!userSecret2FA) {
@@ -118,6 +118,7 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
             secret: otpauth,
             encoding: 'base32',
             token,
+            window:5,
         });
         if (!verified) {
             console.log('Invalid token');
