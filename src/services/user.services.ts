@@ -5,6 +5,7 @@ export const userCreate = async (data: {
     username: string;
     password: string;
     role: string;
+    secret2FA?: Object;
 }) => {
     const user = await User.create(data);
     return user;

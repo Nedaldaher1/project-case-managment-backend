@@ -1,38 +1,62 @@
-import { sign, verify } from 'jsonwebtoken';
-export const createToken = async (userId: string, role: string) => {
-    // التحقق من وجود المفتاح الخاص في البيئة
-    const privateKey = process.env.Private_Key;
-    if (!privateKey) {
-        throw new Error('Private_Key is not defined in environment variables');
+import path from 'path';
+import fs from 'fs';
+import qr from 'qr-image';
+import speakeasy from 'speakeasy';
+import User from '../models/user.model';
+
+export const verifyToken2FA = (token: string, secret: string) => {
+    const isVerified = speakeasy.totp.verify({
+        secret,
+        encoding: 'base32',
+        token,
+    });
+
+    if (!isVerified) {
+        
+        throw new Error('Invalid token');
     }
 
-    // إنشاء التوكن مع ضبط وقت انتهاء الصلاحية (اختياري)
-    const payload = {
-        id: userId,
-        role,
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours,
-    };
-
-    // انتظار التوكن باستخدام await
-    const token = await sign(payload, privateKey, { algorithm: 'HS256' });
-
-    return token;
+    return true;
 };
 
-export const verifyToken = async (token: string) => {
-    // التأكد من وجود المفتاح الخاص في البيئة
-    const privateKey = process.env.Private_Key;
-    if (!privateKey) {
-        throw new Error('Private_Key is not defined in environment variables');
-    }
 
+export const generateQRCode = async (uuid: string, username: string) => {
     try {
-        // التحقق من صحة التوكن وفكه
-        const payload = await verify(token, privateKey, { algorithms: ['HS256'] });
-        // إرجاع المحتوى المفكوك للتوكن مع حالة التوكن
-        return { payload, tokenStatus: true };
+        // البحث عن المستخدم باستخدام uuid
+        const user = await User.findByPk(uuid);
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        // استخراج الـ secret2FA و الـ otpAuthUrl
+        const secret2FA = user.get('secret2FA') as { otpauth_url: string };
+        if (!secret2FA || !secret2FA.otpauth_url) {
+            throw new Error('Invalid 2FA secret or URL');
+        }
+        
+        const otpAuthUrl = secret2FA.otpauth_url;
+        
+        console.log('otpAuthUrl:', otpAuthUrl);
+
+        // مسار حفظ الصورة
+        const filePath = path.join(__dirname, '..', 'images', `${username}.png`);
+
+        // التأكد من أن المجلد موجود، وإذا لم يكن، قم بإنشائه
+        const directoryPath = path.dirname(filePath);
+        if (!fs.existsSync(directoryPath)) {
+            fs.mkdirSync(directoryPath, { recursive: true });
+        }
+
+        // توليد وحفظ رمز QR كملف PNG
+        qr.image(otpAuthUrl, { type: 'png' }).pipe(fs.createWriteStream(filePath));
+
+        console.log(`QR code saved successfully at: ${filePath}`);
+        return filePath;
     } catch (error) {
-        // في حالة فشل التحقق من صحة التوكن
-        return { payload: null, tokenStatus: false };
+        if (error instanceof Error) {
+            console.error('Error generating QR code:', error.message);
+        }
+        throw new Error('Failed to generate QR code');
     }
 };
+

@@ -50,7 +50,7 @@ export const createCaseHandler: RequestHandler = async (req: Request, res: Respo
 
 export const editCase  : RequestHandler = async (req: Request, res: Response) => {
     try {
-        const { id, caseNumber, memberNumber, accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision, actionOther } = req.body;
+        const { id, caseNumber, memberNumber , accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision, actionOther } = req.body;
 
         const updatedCase = await updateCase(id, {
             caseNumber,
