@@ -94,18 +94,14 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
             res.status(404).json({ message: 'User not found' });
             return;
         }
-        console.log('user:', user);
+
         const userSecret2FA = user.get('secret2FA') as { base32: string };
-
         const otpauth = userSecret2FA.base32;
-
-        console.log('otpauth:', otpauth);
 
         if (!userSecret2FA) {
             console.log('2FA secret not found');
             res.status(404).json({ message: '2FA secret not found' });
             return;
-
         }
 
         // تحقق من الرمز باستخدام مكتبة speakeasy
@@ -115,19 +111,24 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
             token,
             window: 4,
         });
+
         if (!verified) {
             console.log('Invalid token');
             res.status(401).json({ message: 'Invalid token' });
-            return
+            return;
         }
+
+        // إنشاء جلسة بعد نجاح التحقق
         req.session.user = {
             id: user.get('id') as string,
             username: user.get('username') as string,
             role: user.get('role') as string,
             memberNumber: user.get('member_id') as number
         };
-        console.log("user verifyToken2FAHandler :", req.session.user);
-        res.status(200).json({ message: 'Token verified successfully' });
+
+        console.log("user verifyToken2FAHandler:", req.session.user);
+
+        res.status(200).json({ message: 'Token verified and session created successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'An error occurred', error: (error as Error).message });
@@ -135,11 +136,11 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
 };
 
 
-export const userLogin: RequestHandler = async (req: Request, res: Response) => {
+
+export const userLogin: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     try {
-        let { username, password } = req.body;
-        username = username?.trim();
-        password = password?.trim();
+        const { username, password } = req.body;
+
         // التحقق من اسم المستخدم وكلمة المرور
         if (!username || !password) {
             res.status(400).json({ message: 'اسم المستخدم وكلمة المرور مطلوبان' });
@@ -155,58 +156,21 @@ export const userLogin: RequestHandler = async (req: Request, res: Response) => 
             return;
         }
 
-        // التحقق مما إذا كان هناك جلسة سابقة للمستخدم الحالي
-        if (req.session && req.session.user && req.session.user.id === user.get('id')) {
-            // إذا كان هناك جلسة، يتم تدميرها أولاً
-            req.session.destroy((err) => {
-                if (err) {
-                    console.error('Error destroying previous session:', err);
-                    res.status(500).json({ message: 'حدث خطأ أثناء تدمير الجلسة السابقة' });
-                    return;
-                }
-
-                // إنشاء جلسة جديدة للمستخدم بعد تدمير الجلسة السابقة
-                if (req.session && req.session.regenerate) {
-                    req.session.regenerate((err) => {
-                        if (err) {
-                            console.error('Error regenerating session:', err);
-                            res.status(500).json({ message: 'حدث خطأ أثناء إنشاء الجلسة الجديدة' });
-                            return;
-                        }
-                        // تخزين بيانات المستخدم في الجلسة الجديدة
-
-                        req.session.user = {
-                            id: user.get('id') as string,
-                            username: user.get('username') as string,
-                            role: user.get('role') as string,
-                            memberNumber: user.get('member_id') as number
-                        };
-
-                        res.json({ message: 'تم تسجيل الدخول بنجاح بعد تسجيل الخروج من الجلسة السابقة', user: req.session.user });
-                    });
-                } else {
-                    res.status(500).json({ message: 'حدث خطأ أثناء إعداد الجلسة' });
-                }
-            });
-        }
-
-        res.json({ message: 'تم تسجيل الدخول بنجاح', user });
-
-        req.session.user = {
-            id: user.get('id') as string,
-            username: user.get('username') as string,
-            role: user.get('role') as string,
-            memberNumber: user.get('member_id') as number
-        };
+        console.log('user:', user);
+        // إرسال استجابة نجاح بدون إنشاء جلسة، لأن إنشاء الجلسة سيتم في verifyToken2FAHandler
+        res.json({ message: 'تم التحقق من اسم المستخدم وكلمة المرور بنجاح. يرجى متابعة التحقق الثنائي.', user });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'حدث خطأ ما', error: (error as Error).message });
     }
 };
 
+
+
+
 export const userAuthentication: RequestHandler = (req: Request, res: Response) => {
     try {
-        console.log('req.session:', req.session);
+        console.log('req.session:', req.session.user);
         // التحقق من وجود بيانات المستخدم في الجلسة
         if (!req.session.user) {
             res.status(401).json({ message: 'Unauthorized - Please log in' });
