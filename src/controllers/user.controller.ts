@@ -25,11 +25,6 @@ export const createUser: RequestHandler = async (req: Request, res: Response) =>
             if (userExists) {
                 res.status(400).json({ message: 'اسم المستخدم مستعمل' });
             } else {
-                const privateKey = process.env.Private_Key;
-                if (!privateKey) {
-                    throw new Error('Private_Key is not defined in environment variables');
-                }
-
                 const hashedPassword = await bcrypt.hash(password, 10);
                 const secret2FA = speakeasy.generateSecret({ length: 20 });
 
