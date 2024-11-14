@@ -118,7 +118,7 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
             secret: otpauth,
             encoding: 'base32',
             token,
-            window:5,
+            window: 2,
         });
         if (!verified) {
             console.log('Invalid token');
@@ -131,6 +131,7 @@ export const verifyToken2FAHandler: RequestHandler = async (req: Request, res: R
             role: user.get('role') as string,
             memberNumber: user.get('member_id') as number
         };
+        console.log("user verifyToken2FAHandler :", req.session.user);
         res.status(200).json({ message: 'Token verified successfully' });
     } catch (error) {
         console.error(error);
@@ -194,10 +195,14 @@ export const userLogin: RequestHandler = async (req: Request, res: Response) => 
             });
         }
 
-        console.log('user:', user);
         res.json({ message: 'تم تسجيل الدخول بنجاح', user });
 
-
+        req.session.user = {
+            id: user.get('id') as string,
+            username: user.get('username') as string,
+            role: user.get('role') as string,
+            memberNumber: user.get('member_id') as number
+        };
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'حدث خطأ ما', error: (error as Error).message });
