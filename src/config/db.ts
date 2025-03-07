@@ -1,16 +1,16 @@
+// src/config/db.ts
 import { Sequelize, Op } from 'sequelize';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Load environment variables from .env
+dotenv.config();
 
-// Database connection setup
 const sequelize = new Sequelize(
-  process.env.DATABASE_NAME || 'default_db', // Database name
-  process.env.DATABASE_USER || 'default_user', // Username
-  process.env.DATABASE_PASSWORD || 'default_password', // Password
+  process.env.DATABASE_NAME || 'default_db',
+  process.env.DATABASE_USER || 'default_user',
+  process.env.DATABASE_PASSWORD || 'default_password',
   {
-    host: process.env.DATABASE_HOST || 'localhost', // Database host
-    dialect: (process.env.DATABASE_DIALECT as 'postgres') || 'postgres', // Database dialect
+    host: process.env.DATABASE_HOST || 'localhost',
+    dialect: (process.env.DATABASE_DIALECT as 'postgres') || 'postgres',
     logging: false,
   }
 );
@@ -18,30 +18,53 @@ const sequelize = new Sequelize(
 export const connectDB = async (): Promise<void> => {
   try {
     await sequelize.authenticate();
-    console.log('Connection has been established successfully.');
+    console.log('تم الاتصال بقاعدة البيانات بنجاح.');
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
+    console.error('فشل الاتصال بقاعدة البيانات:', error);
   }
 };
 
 export const syncModels = async (): Promise<void> => {
   try {
-    // Import models dynamically to avoid circular dependency
     const { default: User } = await import('../models/user.model');
     const { default: Case_public } = await import('../models/case_public.model');
     const { default: Case_private } = await import('../models/case_private.model');
     const { default: Backup } = await import('../models/backup.model');
+    const { default: ProsecutionData } = await import('../models/prosecutionData.model');
+    const { default: ProsecutionOffice } = await import('../models/prosecutionOffice.model');
 
-    // Synchronize models with the database
-    await User.sync({ force: true });
-    await Case_public.sync({ force: true });
-    await Case_private.sync({ force: true });
-    await Backup.sync({ force: true });    
-    console.log('Database & tables created or updated!');
+    const force = true
+    const alter = false;
+
+    await User.sync({ force, alter });
+    await Case_public.sync({ force, alter });
+    await Case_private.sync({ force, alter });
+    await Backup.sync({ force, alter });
+    await ProsecutionData.sync({ force, alter });
+    await ProsecutionOffice.sync({ force, alter });
+
+    // إضافة بيانات النيابات التلقائية
+    const prosecutionOffices = [
+      'النيابة الكلية',
+      'نيابة قسم اول الجزئية',
+      'نيابة قسم ثاني الجزئية',
+      'نيابة مركز المنصورة',
+      'نيابة طلخا',
+      'نيابة السنبلاوين',
+      'نيابة اجا',
+      'نيابة ميت غمر',
+      'نيابة تمي الامديد'
+    ];
+
+    await ProsecutionOffice.bulkCreate(
+      prosecutionOffices.map(name => ({ name })),
+      { ignoreDuplicates: true } // تجنب إضافة بيانات مكررة
+    );
+
+    console.log('Models synced and initial data prepared successfully!');
   } catch (error) {
-    console.error('Error synchronizing the models:', error);
+    console.error('An error occurred while synchronizing forms:', error);
   }
 };
 
-// Export sequelize and Op
 export { sequelize, Op };

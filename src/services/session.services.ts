@@ -1,5 +1,5 @@
 import { sequelize, Op } from '../config/db'; // استيراد Op بالإضافة إلى sequelize
-import Session from "../models/session";
+import Session from "../models/session.model";
 import bcrypt from 'bcrypt'
 
 export const generateSessionId = async () => {

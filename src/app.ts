@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express, { Request, Response, NextFunction } from 'express';
 import caseRouter from './routes/case_public.route';
 import userRouter from './routes/user.route';
+import ArchivesRouter from './routes/archives.route';
 import caseRouterPrivate from './routes/case_private.route';
 import { sequelize } from './config/db';
 import { syncModels } from './config/db';
@@ -93,5 +94,6 @@ sequelize.sync().then(async () => {
 app.use('/api/public', caseRouter);
 app.use('/api/private', caseRouterPrivate);
 app.use('/auth', userRouter);
+app.use('/archives', ArchivesRouter);
 
 export default app;
