@@ -4,7 +4,7 @@ import ProsecutionData from '../models/prosecutionData.model';
 import { Op ,sequelize } from '../config/db';
 const createProsecutionData = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { serialNumber, itemNumber, charge, seizureStatement, disposalOfSeizure, totalNumber, roomNumber, referenceNumber, shelfNumber, prosecutionOfficeId, numberCase,prosecutionDetentionDecision,finalCourtJudgment } = req.body;
+        const { serialNumber, itemNumber, charge, seizureStatement, disposalOfSeizure, totalNumber, roomNumber, referenceNumber, shelfNumber, prosecutionOfficeId, numberCase,prosecutionDetentionDecision,finalCourtJudgment,year,statusEvidence , typeCaseTotalNumber,typeCaseNumber } = req.body;
         const newProsecutionData = await ProsecutionData.create({
             serialNumber,
             itemNumber,
@@ -18,7 +18,11 @@ const createProsecutionData = async (req: Request, res: Response): Promise<void>
             prosecutionOfficeId,
             numberCase,
             prosecutionDetentionDecision,
-            finalCourtJudgment
+            finalCourtJudgment,
+            year,
+            statusEvidence,
+            typeCaseTotalNumber,
+            typeCaseNumber
         });
         res.json({ success: true, prosecutionData: newProsecutionData });
     } catch (error) {
@@ -29,29 +33,46 @@ const createProsecutionData = async (req: Request, res: Response): Promise<void>
 
 const updateProsecutionData = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id, serialNumber, itemNumber, charge, seizureStatement, disposalOfSeizure, totalNumber, roomNumber, referenceNumber, shelfNumber, prosecutionOfficeId } = req.body;
+        const { id } = req.params;
+        const updatedData = req.body;
 
-        const updatedProsecutionData = await ProsecutionData.update({
-            serialNumber,
-            itemNumber,
-            charge,
-            seizureStatement,
-            disposalOfSeizure,
-            totalNumber,
-            roomNumber,
-            referenceNumber,
-            shelfNumber,
-            prosecutionOfficeId
-        }, { where: { id } });
-        res.json({ success: true, prosecutionData: updatedProsecutionData });
+        const [affectedCount, updatedRecords] = await ProsecutionData.update(
+            updatedData,
+            {
+                where: { id },
+                returning: true // إرجاع البيانات المحدثة
+            }
+        );
+
+        if (affectedCount === 0) {
+            res.status(404).json({ success: false, error: "لم يتم العثور على السجل" });
+            return;
+        }
+
+        // إرجاع السجل المحدث مع جميع الحقول
+        res.json({ 
+            success: true, 
+            updatedData: updatedRecords[0].get() 
+        });
+
     } catch (error) {
-        res.status(500).json({ success: false, error: (error as Error).message });
+        console.error('Error updating data:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'حدث خطأ أثناء التحديث' 
+        });
     }
 };
 
 const getAllProsecutionData = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { type, page = 1, limit = 20, search = '' } = req.query;
+        const { 
+            type, 
+            page = 1, 
+            limit = 20, 
+            caseNumber,  // بارامتر رقم القضية
+            itemNumber   // بارامتر رقم الأشياء
+        } = req.query;
 
         if (!type) {
             res.status(400).json({ success: false, error: "معرف النيابة مطلوب" });
@@ -62,23 +83,19 @@ const getAllProsecutionData = async (req: Request, res: Response): Promise<void>
 
         const whereClause: any = { prosecutionOfficeId: type };
 
-        if (search) {
-            whereClause[Op.or] = [
-                sequelize.where(sequelize.cast(sequelize.col('serialNumber'), 'text'), { [Op.like]: `%${search}%` }),
-                sequelize.where(sequelize.cast(sequelize.col('itemNumber'), 'text'), { [Op.like]: `%${search}%` }),
-                { charge: { [Op.like]: `%${search}%` } },
-                { seizureStatement: { [Op.like]: `%${search}%` } },
-                sequelize.where(sequelize.cast(sequelize.col('totalNumber'), 'text'), { [Op.like]: `%${search}%` }),
-                sequelize.where(sequelize.cast(sequelize.col('roomNumber'), 'text'), { [Op.like]: `%${search}%` }),
-                sequelize.where(sequelize.cast(sequelize.col('referenceNumber'), 'text'), { [Op.like]: `%${search}%` }),
-                sequelize.where(sequelize.cast(sequelize.col('shelfNumber'), 'text'), { [Op.like]: `%${search}%` }),
-                sequelize.where(sequelize.cast(sequelize.col('numberCase'), 'text'), { [Op.like]: `%${search}%` }),
-                sequelize.where(sequelize.cast(sequelize.col('prosecutionDetentionDecision'), 'text'), { [Op.like]: `%${search}%` }),
-                sequelize.where(sequelize.cast(sequelize.col('finalCourtJudgment'), 'text'), { [Op.like]: `%${search}%` }),
-            ];
+        // فلترة رقم القضية
+        if (caseNumber) {
+            whereClause.numberCase = { 
+                [Op.like]: `%${caseNumber}%` 
+            };
         }
-        
-        
+
+        // فلترة رقم الأشياء
+        if (itemNumber) {
+            whereClause.itemNumber = { 
+                [Op.like]: `%${itemNumber}%` 
+            };
+        }
 
         const { count, rows } = await ProsecutionData.findAndCountAll({
             where: whereClause,

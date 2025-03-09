@@ -6,7 +6,7 @@ import { getallOffices } from '../controllers/prosecutionOffice.controller';
 const router = express.Router();
 
 router.post('/data/create', createProsecutionData);
-router.put('/data/update', updateProsecutionData);
+router.put('/data/update/:id', updateProsecutionData);
 router.get('/data/all', getAllProsecutionData);
 router.get('/office/all', getallOffices);
 

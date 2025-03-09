@@ -13,11 +13,18 @@ const ProsecutionData = sequelize.define('ProsecutionData', {
     type: DataTypes.BIGINT,
     allowNull: false,
   },
+  year:{
+    type: DataTypes.INTEGER ,
+    allowNull: false,
+  },
   numberCase: {
     type: DataTypes.BIGINT,
     allowNull: false,
-  }
-  ,
+  },
+  typeCaseNumber: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   itemNumber: {
     type: DataTypes.BIGINT,
     allowNull: false,
@@ -39,9 +46,14 @@ const ProsecutionData = sequelize.define('ProsecutionData', {
     allowNull: false,
   },
   totalNumber: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING,
     allowNull: false,
   },
+  typeCaseTotalNumber:{
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+
   roomNumber: {
     type: DataTypes.BIGINT,
     allowNull: false,
@@ -52,6 +64,10 @@ const ProsecutionData = sequelize.define('ProsecutionData', {
   },
   shelfNumber: {
     type: DataTypes.BIGINT,
+    allowNull: false,
+  },
+  statusEvidence: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
   prosecutionOfficeId: {
