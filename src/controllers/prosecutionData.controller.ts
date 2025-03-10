@@ -70,8 +70,8 @@ const getAllProsecutionData = async (req: Request, res: Response): Promise<void>
             type, 
             page = 1, 
             limit = 20, 
-            numberCase,  // بارامتر رقم القضية
-            itemNumber   // بارامتر رقم الأشياء
+            numberCase,
+            itemNumber
         } = req.query;
 
         if (!type) {
@@ -83,21 +83,15 @@ const getAllProsecutionData = async (req: Request, res: Response): Promise<void>
 
         const whereClause: any = { prosecutionOfficeId: type };
 
-        // فلترة رقم القضية
-        if (numberCase) {
-            whereClause.numberCase = Number(numberCase);
+        if (numberCase) whereClause.numberCase = Number(numberCase);
+        if (itemNumber) whereClause.itemNumber = Number(itemNumber);
 
-        }
-
-        // فلترة رقم الأشياء
-        if (itemNumber) {
-            whereClause.itemNumber = Number(itemNumber);
-        }
-
+        // الترتيب الدائم من الأصغر إلى الأكبر حسب itemNumber
         const { count, rows } = await ProsecutionData.findAndCountAll({
             where: whereClause,
             limit: Number(limit),
             offset,
+            order: [['itemNumber', 'DESC']] // هنا يتم تحديد الترتيب الدائم
         });
 
         res.json({
@@ -108,8 +102,12 @@ const getAllProsecutionData = async (req: Request, res: Response): Promise<void>
             totalPages: Math.ceil(count / Number(limit)),
         });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, error: (error as Error).message });
+        console.error('Error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'حدث خطأ داخلي',
+            details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
+        });
     }
 };
 

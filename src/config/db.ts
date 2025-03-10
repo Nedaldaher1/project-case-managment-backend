@@ -33,7 +33,7 @@ export const syncModels = async (): Promise<void> => {
     const { default: ProsecutionData } = await import('../models/prosecutionData.model');
     const { default: ProsecutionOffice } = await import('../models/prosecutionOffice.model');
 
-    const force = true
+    const force = false
     const alter = false;
 
     await User.sync({ force, alter });
