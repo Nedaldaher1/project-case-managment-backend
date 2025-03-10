@@ -70,7 +70,7 @@ const getAllProsecutionData = async (req: Request, res: Response): Promise<void>
             type, 
             page = 1, 
             limit = 20, 
-            caseNumber,  // بارامتر رقم القضية
+            numberCase,  // بارامتر رقم القضية
             itemNumber   // بارامتر رقم الأشياء
         } = req.query;
 
@@ -84,17 +84,14 @@ const getAllProsecutionData = async (req: Request, res: Response): Promise<void>
         const whereClause: any = { prosecutionOfficeId: type };
 
         // فلترة رقم القضية
-        if (caseNumber) {
-            whereClause.numberCase = { 
-                [Op.like]: `%${caseNumber}%` 
-            };
+        if (numberCase) {
+            whereClause.numberCase = Number(numberCase);
+
         }
 
         // فلترة رقم الأشياء
         if (itemNumber) {
-            whereClause.itemNumber = { 
-                [Op.like]: `%${itemNumber}%` 
-            };
+            whereClause.itemNumber = Number(itemNumber);
         }
 
         const { count, rows } = await ProsecutionData.findAndCountAll({
