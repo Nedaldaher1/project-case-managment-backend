@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import  {sequelize, Op } from '../config/db';
+import { sequelize, Op } from '../config/db';
 import User from './user.model';
 
 const Case_private = sequelize.define('Case_private', {
@@ -62,11 +62,13 @@ const Case_private = sequelize.define('Case_private', {
     },
     comment: 'معرف المستخدم الذي أنشأ القضية',
   },
-  actionOther:{
+  actionOther: {
     type: DataTypes.TEXT,
     allowNull: false,
     comment: 'أخرى',
-  }
+  },
+
+
 }, {
   timestamps: true,
   tableName: 'case_private',

@@ -3,28 +3,41 @@ import exp from 'constants';
 import Case from '../models/case_public.model';
 
 export const createCase = async (data: {
-  caseNumber: string;
-  defendantName: string;
-  imprisonmentDuration: number;
-  startDate: Date;
-  member_location: string;
-  member_number: string;
-  type_case: string;
+    caseNumber: string;
+    defendantName: string;
+    imprisonmentDuration: number;
+    startDate: Date;
+    member_number: string;
+    type_case: string;
+    year: string;
+    officeNumber: string;
+    issuingDepartment: string;
+    investigationID: string;
 }) => {
-  return await Case.create(data);
+    return await Case.create(data);
 };
 
-export const getAllCases = async () => {
+export const getAllCases = async (page: number = 1, pageSize: number = 20) => {
     try {
-        const cases = await Case.findAll();
-        return cases;
+        const offset = (page - 1) * pageSize;
+        const { count, rows } = await Case.findAndCountAll({
+            limit: pageSize,
+            offset: offset,
+            order: [['id', 'ASC']],
+        });
+
+        return {
+            total: count,
+            cases: rows,
+            currentPage: page,
+            totalPages: Math.ceil(count / pageSize),
+        };
     } catch (error) {
         console.error("Error fetching cases:", error);
-        throw new Error('could not fetch cases');
+        throw new Error('Could not fetch cases');
     }
 };
-
-export const updateCase = async (data: { id: number; caseNumber?: string; defendantName?: string; imprisonmentDuration?: number; startDate?: Date; member_location?:string,member_number?:string; type_case?:string; }) => {
+export const updateCase = async (data: { id: number; caseNumber?: string; defendantName?: string; imprisonmentDuration?: number; startDate?: Date; member_location?: string, member_number?: string; type_case?: string; year?: string; officeNumber?: string; issuingDepartment?: string; investigationID?:string }) => {
     try {
         const updatedCase = await Case.update(data, { where: { id: data.id } });
         return updatedCase;

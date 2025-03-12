@@ -3,23 +3,28 @@ import { createCase, getAllCases, updateCase } from '../services/case_public.ser
 import { Request, Response, RequestHandler } from 'express';
 
 export const createCaseHandler: RequestHandler = async (req: Request, res: Response) => {
-    const { caseNumber, defendantName, imprisonmentDuration, startDate, member_location, member_number , type_case } = req.body;
+    const { caseNumber, defendantName, imprisonmentDuration, startDate, member_number, type_case, year, officeNumber, issuingDepartment,investigationID } = req.body;
+
     const newCase = await createCase({
         caseNumber,
         defendantName,
         imprisonmentDuration,
         startDate,
-        member_location,
+        issuingDepartment, // تأكد أن هذا الاسم مطابق لتعريف الكائن
         member_number,
-        type_case
-
+        type_case,
+        year,
+        officeNumber,
+        investigationID
     });
+
     res.json({ success: true, case: newCase });
 };
 
+
 export const editCase: RequestHandler = async (req: Request, res: Response) => {
     try {
-        const { id, caseNumber, defendantName, imprisonmentDuration, startDate, member_location, member_number , type_case } = req.body;
+        const { id, caseNumber, defendantName, imprisonmentDuration, startDate, member_location, member_number, type_case, year, officeNumber, issuingDepartment,investigationID } = req.body;
 
         const updatedCase = await updateCase({
             id,
@@ -29,7 +34,11 @@ export const editCase: RequestHandler = async (req: Request, res: Response) => {
             startDate,
             member_location,
             member_number,
-            type_case
+            type_case,
+            year,
+            officeNumber,
+            issuingDepartment,
+            investigationID
 
         });
         res.json({ success: true, case: updatedCase });
@@ -42,11 +51,13 @@ export const editCase: RequestHandler = async (req: Request, res: Response) => {
 }
 
 export const fetchAllCases: RequestHandler = async (req: Request, res: Response) => {
-
     try {
-        const cases = await getAllCases()
-        res.json({ success: true, cases });
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 20;
+
+        const result = await getAllCases(page, pageSize);
+        res.json({ success: true, ...result });
     } catch (error) {
         res.json({ success: false, error: (error as Error).message });
     }
-}
+};
