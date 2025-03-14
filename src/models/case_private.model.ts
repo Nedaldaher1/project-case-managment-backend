@@ -23,6 +23,16 @@ const Case_private = sequelize.define('Case_private', {
     allowNull: false,
     comment: 'التهمة',
   },
+  accusedName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: 'اسم المتهم',
+  },
+  year:{
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    comment: 'السنة',
+  },
   defendantQuestion: {
     type: DataTypes.TEXT,
     allowNull: true,
@@ -48,10 +58,20 @@ const Case_private = sequelize.define('Case_private', {
     allowNull: true,
     comment: 'تقارير فنية',
   },
+  investigationID:{
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'رقم التحقيق',
+  },
+  reportType: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'نوع القضية',
+  },
   caseReferral: {
     type: DataTypes.TEXT,
     allowNull: true,
-    comment: 'احالة القضية',
+    comment: 'جاهزة للتصرف',
   },
   userId: {
     type: DataTypes.UUID,

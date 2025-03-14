@@ -1,91 +1,87 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { getCases, getAllCases, createCase, updateCase } from '../services/case_private.service';
+    // controllers/caseController.ts
+    import { Request, Response, NextFunction, RequestHandler } from 'express';
+    import { 
+        getCases,
+        getAllCases,
+        createCase,
+        updateCase
+    } from '../services/case_private.service';
 
-export const createCaseHandler: RequestHandler = async (req: Request, res: Response) => {
-    try {
-        const {
-            caseNumber,
-            memberNumber,
-            accusation,
-            defendantQuestion,
-            officerQuestion,
-            victimQuestion,
-            witnessQuestion,
-            technicalReports,
-            caseReferral,
-            isReadyForDecision,
-            actionOther,
-            userId
-        } = req.body;
+    const parseQueryParams = (query: any) => ({
+        page: parseInt(query.page) || 1,
+        pageSize: parseInt(query.pageSize) || 10,
+        memberNumber: query.memberNumber,
+        isReadyForDecision: query.isReadyForDecision === 'true' ? true : undefined
+    });
 
-        // Validate required fields
-        if (!caseNumber || !memberNumber || !accusation) {
-             res.status(400).json({ success: false, error: "caseNumber, memberNumber, and accusation are required." });
+    export const createCaseHandler: RequestHandler = async (req, res, next) => {
+        try {
+            const newCase = await createCase(req.body);
+            res.status(201).json({
+                success: true,
+                message: "تم إضافة القضية بنجاح",
+                data: newCase
+            });
+        } catch (error) {
+            console.log(error);
+            next(error);
         }
+    };
 
-        // Call service to create a new case
-        const newCase = await createCase({
-            caseNumber,
-            memberNumber,
-            accusation,
-            defendantQuestion,
-            officerQuestion,
-            victimQuestion,
-            witnessQuestion,
-            technicalReports,
-            caseReferral,
-            isReadyForDecision,
-            actionOther,
-            userId
-        });
+    export const editCase: RequestHandler = async (req, res, next) => {
+        try {
+            const updatedCase = await updateCase(req.body.id, req.body);
+            res.status(200).json({
+                success: true,
+                message: "تم تحديث القضية بنجاح",
+                data: updatedCase
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 
-        // Respond with success and the created case
-        res.status(201).json({ success: true, case: newCase });
+    export const fetchAllCases: RequestHandler = async (req, res, next) => {
+        try {
+            const options = parseQueryParams(req.query);
+            const result = await getAllCases(options);
+            
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+            res.setHeader('Pragma', 'no-cache');
+            
+            res.status(200).json({
+                success: true,
+                data: result.data,
+                pagination: result.pagination
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    } catch (error) {
-        res.status(500).json({ success: false, error: (error as Error).message });
-        // Catch and respond with error details
-    }
-};
+    export const fetchCases: RequestHandler = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const options = parseQueryParams(req.query);
+            const result = await getCases(id, options);
 
-export const editCase  : RequestHandler = async (req: Request, res: Response) => {
-    try {
-        const { id, caseNumber, memberNumber , accusation, defendantQuestion, officerQuestion, victimQuestion, witnessQuestion, technicalReports, caseReferral, isReadyForDecision, actionOther } = req.body;
+            if (result.data.length === 0) {
+                res.status(404).json({
+                    success: false,
+                    error: "لم يتم العثور على قضايا"
+                });
+                return;
+            }
 
-        const updatedCase = await updateCase(id, {
-            caseNumber,
-            memberNumber,
-            accusation,
-            defendantQuestion,
-            officerQuestion,
-            victimQuestion,
-            witnessQuestion,
-            technicalReports,
-            caseReferral,
-            isReadyForDecision,
-            actionOther
-        });
-         res.json({ success: true, case: updatedCase });
-    } catch (error) {
-         res.json({ success: false, error: (error as Error).message });
-    }
-};
-
-export const fetchAllCases  : RequestHandler = async (req: Request, res: Response) =>  {
-    try {
-        const cases = await getAllCases();
-         res.json({ success: true, cases });
-    } catch (error) {
-         res.json({ success: false, error: (error as Error).message });
-    }
-};
-
-export const fetchCases : RequestHandler = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const cases = await getCases(id);
-         res.json({ success: true, cases });
-    } catch (error) {
-         res.json({ success: false, error: (error as Error).message });
-    }
-};
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+            res.setHeader('Pragma', 'no-cache');
+            
+            res.status(200).json({
+                success: true,
+                data: result.data,
+                pagination: result.pagination
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
