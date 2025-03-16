@@ -32,6 +32,7 @@ export const syncModels = async (): Promise<void> => {
     const { default: Backup } = await import('../models/backup.model');
     const { default: ProsecutionData } = await import('../models/prosecutionData.model');
     const { default: ProsecutionOffice } = await import('../models/prosecutionOffice.model');
+    const { default: AuditLog } = await import('../models/auditLog.model');
 
     const force = false;
     const alter = false;
@@ -42,6 +43,7 @@ export const syncModels = async (): Promise<void> => {
     await Backup.sync({ force, alter });
     await ProsecutionData.sync({ force, alter });
     await ProsecutionOffice.sync({ force, alter });
+    await AuditLog.sync({ force, alter});
 
     // إضافة بيانات النيابات التلقائية
     const prosecutionOffices = [

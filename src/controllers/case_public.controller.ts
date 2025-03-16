@@ -2,23 +2,54 @@
 import { createCase, getAllCases, updateCase } from '../services/case_public.service';
 import { Request, Response, RequestHandler } from 'express';
 
-export const createCaseHandler: RequestHandler = async (req: Request, res: Response) => {
-    const { caseNumber, defendantName, imprisonmentDuration, startDate, member_number, type_case, year, officeNumber, issuingDepartment,investigationID } = req.body;
+export const createCaseHandler: RequestHandler = async (req, res, next) => {
+    try {
+        const { 
+            caseNumber, 
+            defendantName, 
+            imprisonmentDuration, 
+            startDate, 
+            member_number, 
+            type_case, 
+            year, 
+            officeNumber, 
+            issuingDepartment,
+            investigationID 
+        } = req.body;
 
-    const newCase = await createCase({
-        caseNumber,
-        defendantName,
-        imprisonmentDuration,
-        startDate,
-        issuingDepartment, // تأكد أن هذا الاسم مطابق لتعريف الكائن
-        member_number,
-        type_case,
-        year,
-        officeNumber,
-        investigationID
-    });
+        const newCase = await createCase({
+            caseNumber,
+            defendantName,
+            imprisonmentDuration,
+            startDate,
+            member_number,
+            type_case,
+            year,
+            officeNumber,
+            issuingDepartment,
+            investigationID
+        });
 
-    res.json({ success: true, case: newCase });
+        res.status(201).json({ 
+            success: true, 
+            message: "تم إضافة القضية بنجاح",
+            data: newCase 
+        });
+
+    } catch (error) {
+        // معالجة أخطاء التكرار
+        if ((error as any).message.includes('موجود مسبقا')) {
+            res.status(400).json({
+                success: false,
+                message: (error as any).message
+            });
+            return next(); // إيقاف التنفيذ
+        }
+        
+        // معالجة الأخطاء العامة
+        console.error(error);
+        next(error);
+    }
 };
 
 

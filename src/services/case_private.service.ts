@@ -1,6 +1,8 @@
 // services/case_private.service.ts
 import type { UUID } from 'crypto';
 import { Case_private } from '../models/index';
+import { logCreateAction } from '../utils/auditLogger';
+import { sequelize } from '../config/db';
 
 interface PaginationOptions {
     page: number;
@@ -24,6 +26,7 @@ interface PaginatedResult<T> {
 }
 
 export const createCase = async (data: {
+    id?: number;
     caseNumber: string;
     memberNumber: string;
     accusedName: string;
@@ -36,11 +39,40 @@ export const createCase = async (data: {
     caseReferral: string;
     actionOther: string;
     userId: UUID;
+    caseType: string;
     reportType: string;
     investigationID: string;
     year: number;
 }) => {
-    return await Case_private.create(data);
+
+    const transaction = await sequelize.transaction();
+    let isTransactionCompleted = false; // متغير لتتبع حالة الـ Transaction
+
+    try {
+        const caseExists = await Case_private.findOne({
+            where: { caseNumber: data.caseNumber, caseType: data.caseType, year: data.year },
+            transaction
+        });
+
+        if (caseExists) {
+            await transaction.rollback();
+            isTransactionCompleted = true; // تم الـ Rollback
+            throw new Error('رقم القضية موجود مسبقا');
+        }
+
+        const newCase = await Case_private.create(data, { transaction });
+        await logCreateAction('Case_private', newCase.getDataValue('id'), newCase.get(), data.userId, { transaction });
+        
+        await transaction.commit();
+        isTransactionCompleted = true; // تم الـ Commit
+        return newCase;
+    } catch (error) {
+        // التحقق من حالة الـ Transaction قبل الـ Rollback
+        if (!isTransactionCompleted) {
+            await transaction.rollback();
+        }
+        throw error;
+    }
 };
 
 export const getCases = async (
@@ -49,7 +81,7 @@ export const getCases = async (
 ): Promise<PaginatedResult<InstanceType<typeof Case_private>>> => {
     const { page = 1, pageSize = 10 } = options;
     const offset = (page - 1) * pageSize;
-    
+
     const whereClause: any = { userId };
     if (options.memberNumber) whereClause.memberNumber = options.memberNumber;
     if (options.isReadyForDecision !== undefined) {
@@ -79,7 +111,7 @@ export const getAllCases = async (
 ): Promise<PaginatedResult<InstanceType<typeof Case_private>>> => {
     const { page = 1, pageSize = 10 } = options;
     const offset = (page - 1) * pageSize;
-    
+
     const whereClause: any = {};
     if (options.memberNumber) whereClause.memberNumber = options.memberNumber;
     if (options.isReadyForDecision !== undefined) {

@@ -3,6 +3,8 @@ import fs from 'fs';
 import qr from 'qr-image';
 import speakeasy from 'speakeasy';
 import User from '../models/user.model';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+import jwt from 'jsonwebtoken';
 
 export const verifyToken2FA = (token: string, secret: string) => {
     const isVerified = speakeasy.totp.verify({
@@ -60,3 +62,25 @@ export const generateQRCode = async (uuid: string, username: string) => {
     }
 };
 
+export const verifyJWT: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+         res.status(401).json({ message: 'No token provided' }); 
+         return;
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+         res.status(401).json({ message: 'Invalid token' });
+         return;
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET || 'default_jwt_secret', (err, decoded) => {
+        if (err) {
+             res.status(401).json({ message: 'Unauthorized' });
+             return;
+        }
+        (req as any).user = decoded;
+        next(); // المتابعة إلى الـ middleware التالي (userAuthentication)
+    });
+};

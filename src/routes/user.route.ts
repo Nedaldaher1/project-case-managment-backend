@@ -1,4 +1,5 @@
 import express from 'express';
+import { verifyJWT } from '../utils/utils_login';
 import { createUser, userLogin, userAuthentication, userEdit, userDeleteById, getAllUsers, logoutSession, makeBackup, getBackup, restoreBackup, deleteBackup, verifyToken2FAHandler } from "../controllers/user.controller";
 const userRouter = express.Router();
 
@@ -8,7 +9,7 @@ userRouter.post('/user/verify/2fa', verifyToken2FAHandler);
 
 userRouter.post('/login', userLogin);
 
-userRouter.post('/verify', userAuthentication);
+userRouter.post('/verify', verifyJWT, userAuthentication); // استخدم verifyJWT كـ middleware أول
 
 userRouter.put('/user/edit/:id', userEdit);
 

@@ -63,7 +63,7 @@ const Case_private = sequelize.define('Case_private', {
     allowNull: true,
     comment: 'رقم التحقيق',
   },
-  reportType: {
+  caseType: {
     type: DataTypes.STRING,
     allowNull: true,
     comment: 'نوع القضية',
@@ -81,6 +81,11 @@ const Case_private = sequelize.define('Case_private', {
       key: 'id',
     },
     comment: 'معرف المستخدم الذي أنشأ القضية',
+  },
+  reportType: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'نوع التقرير',
   },
   actionOther: {
     type: DataTypes.TEXT,

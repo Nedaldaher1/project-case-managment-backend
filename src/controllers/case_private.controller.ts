@@ -23,10 +23,21 @@
                 data: newCase
             });
         } catch (error) {
-            console.log(error);
+            // التحقق من خطأ التكرار
+            if ((error as any).message.includes('موجود مسبقا')) {
+                res.status(400).json({ // إزالة `return` هنا
+                    success: false,
+                    message: (error as any).message
+                });
+                return next(); // تأكد من إيقاف التنفيذ هنا
+            }
+            
+            // معالجة الأخطاء الأخرى
+            console.error(error);
             next(error);
         }
     };
+    
 
     export const editCase: RequestHandler = async (req, res, next) => {
         try {

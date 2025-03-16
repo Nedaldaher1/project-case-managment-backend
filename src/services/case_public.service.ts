@@ -14,6 +14,20 @@ export const createCase = async (data: {
     issuingDepartment: string;
     investigationID: string;
 }) => {
+    // التحقق من التكرار
+    const existingCase = await Case.findOne({
+        where: {
+            caseNumber: data.caseNumber,
+            type_case: data.type_case,
+            year: data.year
+        }
+    });
+
+    if (existingCase) {
+        throw new Error('رقم القضية موجود مسبقا');
+    }
+
+    // إنشاء القضية إذا لم يكن هناك تكرار
     return await Case.create(data);
 };
 

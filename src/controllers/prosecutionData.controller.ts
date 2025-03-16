@@ -1,35 +1,43 @@
 // src/controllers/prosecutionData.controller.ts
 import { Request, Response } from 'express';
 import ProsecutionData from '../models/prosecutionData.model';
-import { Op ,sequelize } from '../config/db';
+import { Op, sequelize } from '../config/db';
 const createProsecutionData = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { serialNumber, itemNumber, charge, seizureStatement, disposalOfSeizure, totalNumber, roomNumber, referenceNumber, shelfNumber, prosecutionOfficeId, numberCase,prosecutionDetentionDecision,finalCourtJudgment,year,statusEvidence , typeCaseTotalNumber,typeCaseNumber } = req.body;
-        const newProsecutionData = await ProsecutionData.create({
-            serialNumber,
-            itemNumber,
-            charge,
-            seizureStatement,
-            disposalOfSeizure,
-            totalNumber,
-            roomNumber,
-            referenceNumber,
-            shelfNumber,
-            prosecutionOfficeId,
-            numberCase,
-            prosecutionDetentionDecision,
-            finalCourtJudgment,
+        // شملنا الحقل caseType للتحقق منه بالإضافة إلى الحقول الأخرى
+        const {
+
+            numberCase,  // يعتبر رقم القضية
+            typeCaseNumber,    // نوع القضية
             year,
-            statusEvidence,
-            typeCaseTotalNumber,
-            typeCaseNumber
+
+        } = req.body;
+
+        // التحقق من تكرار رقم القضية مع نوع القضية والسنة
+        const existingData = await ProsecutionData.findOne({
+            where: {
+                numberCase: numberCase,
+                typeCaseNumber: typeCaseNumber,
+                year: year
+            }
         });
+
+        if (existingData) {
+            res.status(400).json({ success: false, message: ' رقم القضية موجود مسبقا' });
+            return;
+        }
+
+        const newProsecutionData = await ProsecutionData.create({
+            ...req.body
+        });
+
         res.json({ success: true, prosecutionData: newProsecutionData });
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, error: (error as Error).message });
     }
 };
+
 
 const updateProsecutionData = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -50,26 +58,26 @@ const updateProsecutionData = async (req: Request, res: Response): Promise<void>
         }
 
         // إرجاع السجل المحدث مع جميع الحقول
-        res.json({ 
-            success: true, 
-            updatedData: updatedRecords[0].get() 
+        res.json({
+            success: true,
+            updatedData: updatedRecords[0].get()
         });
 
     } catch (error) {
         console.error('Error updating data:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'حدث خطأ أثناء التحديث' 
+        res.status(500).json({
+            success: false,
+            error: 'حدث خطأ أثناء التحديث'
         });
     }
 };
 
 const getAllProsecutionData = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { 
-            type, 
-            page = 1, 
-            limit = 20, 
+        const {
+            type,
+            page = 1,
+            limit = 20,
             numberCase,
             itemNumber
         } = req.query;
@@ -103,8 +111,8 @@ const getAllProsecutionData = async (req: Request, res: Response): Promise<void>
         });
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: 'حدث خطأ داخلي',
             details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
         });
